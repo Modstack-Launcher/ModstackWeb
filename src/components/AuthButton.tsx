@@ -56,7 +56,7 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
 
   const handleNameSave = async () => {
     if (!isValidUsername(newName)) {
-      setNameError('Username must be 3–32 characters: letters, numbers, _ . -');
+      setNameError('Username must be 3-16 characters: letters, numbers and _');
       return;
     }
     setSaving(true);
@@ -276,11 +276,11 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
                 type="text"
                 value={newName}
                 onChange={(e) => {
-                  const val = e.target.value.replace(/[^a-zA-Z0-9_.-]/g, '');
-                  setNewName(val.slice(0, 32));
+                  const val = e.target.value.replace(/[^a-zA-Z0-9_]/g, '');
+                  setNewName(val.slice(0, 16));
                   setNameError('');
                 }}
-                maxLength={32}
+                maxLength={16}
                 placeholder="New username"
                 className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500 focus:outline-none focus:border-[#2596be] mb-2"
                 onKeyDown={(e) => e.key === 'Enter' && handleNameSave()}

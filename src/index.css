@@ -141,6 +141,80 @@ nav {
   gap: 8px;
 }
 
+.language-switcher {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1000;
+  font-family: 'Inter', sans-serif;
+}
+
+.language-switcher__button {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(37, 150, 190, 0.38);
+  border-radius: 8px;
+  background: rgba(15, 25, 35, 0.92);
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.language-switcher__button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(37, 150, 190, 0.75);
+  background: rgba(16, 52, 68, 0.96);
+}
+
+.language-switcher__chevron {
+  transition: transform 0.15s ease;
+}
+
+.language-switcher__chevron.open {
+  transform: rotate(180deg);
+}
+
+.language-switcher__menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  width: 170px;
+  padding: 6px;
+  border: 1px solid rgba(37, 150, 190, 0.28);
+  border-radius: 8px;
+  background: rgba(15, 25, 35, 0.98);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.42);
+}
+
+.language-switcher__menu button {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.language-switcher__menu button:hover,
+.language-switcher__menu button.active {
+  background: rgba(37, 150, 190, 0.14);
+  color: #ffffff;
+}
+
 .btn-icon {
   width: 34px;
   height: 34px;

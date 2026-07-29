@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AuthButton from "../components/AuthButton";
 import { Card, CardBody } from "@heroui/react";
+import { useLanguage } from "../i18n";
 import previewImg from "../images/launcher-preview.png";
 import iconImg from "../images/placeholder.png";
 import titleImg from "../images/modstack-title.png";
@@ -202,6 +203,7 @@ interface NewsItem {
 }
 
 function App() {
+  const { language } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const [latestNews, setLatestNews] = useState<NewsItem | null>(null);
   const [detectedOS, setDetectedOS] = useState<"Windows" | "macOS" | "Linux" | "Mobile" | null>(null);
@@ -631,7 +633,7 @@ function App() {
 
                   <div className="flex items-center justify-between pt-2.5 border-t border-zinc-800/40 mt-2">
                     <span className="text-zinc-500 text-[10px] font-semibold uppercase tracking-wider">
-                      {new Date(latestNews.createdAt ?? Date.now()).toLocaleDateString("en", {
+                      {new Date(latestNews.createdAt ?? Date.now()).toLocaleDateString(language === "pt" ? "pt-BR" : language, {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
@@ -935,7 +937,7 @@ function App() {
                 style={{ display: "flex", flexDirection: "column", gap: "8px" }}
               >
                 <a
-                  href="https://twitter.com/modstack_"
+                  href="https://twitter.com/modstackapp"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={socialLinkStyle}

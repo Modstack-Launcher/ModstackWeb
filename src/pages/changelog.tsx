@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@heroui/react";
 import ReactMarkdown from "react-markdown";
 import { ArrowLeft } from "lucide-react";
+import { useLanguage } from "../i18n";
 import titleImg from "../images/modstack-title.png";
 import iconImg from "../images/placeholder.png";
 
@@ -67,6 +68,7 @@ function getRelativeTime(dateString: string): string {
 
 export default function NewsPage() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -215,7 +217,7 @@ export default function NewsPage() {
                 const cat = getCategory(item);
                 const relativeTime = getRelativeTime(item.createdAt);
                 const dateFormatted = new Date(item.createdAt).toLocaleDateString(
-                  "en",
+                  language === "pt" ? "pt-BR" : language,
                   {
                     day: "numeric",
                     month: "long",

@@ -197,7 +197,7 @@ export default function AboutPage({ open = false, onClose }: AboutPageProps) {
             <ul className="space-y-2.5 text-sm text-white/80">
               <li>
                 <span className="text-white font-extrabold">
-                  @primeCigarrete
+                  @slowyx
                 </span>{" "}
                 — Lead Creator & Developer
               </li>

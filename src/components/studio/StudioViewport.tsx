@@ -36,6 +36,22 @@ export default function StudioViewport({ onStatus }: { onStatus: (s: { fps: numb
     gridRef.current = grid;
 
     const loadDefaultSkin = async () => {
+      try {
+        const pendingValue = window.localStorage.getItem('modstack.studio.pendingSkin');
+        if (pendingValue) {
+          const pending = JSON.parse(pendingValue) as { skin?: string; model?: ModelType };
+          if (pending.skin?.startsWith('data:image/png')) {
+            const selectedModel = pending.model === 'slim' ? 'slim' : 'default';
+            await viewer.loadSkin(pending.skin, { model: selectedModel });
+            dispatch({ type: 'SET_SKIN', source: pending.skin, preview: pending.skin, model: selectedModel, detected: selectedModel });
+            window.localStorage.removeItem('modstack.studio.pendingSkin');
+            return;
+          }
+        }
+      } catch {
+        window.localStorage.removeItem('modstack.studio.pendingSkin');
+      }
+
       const tryUrl = async (url: string): Promise<Blob> => {
         const res = await fetch(url, { mode: 'cors' });
         if (!res.ok) throw new Error(`${res.status}`);

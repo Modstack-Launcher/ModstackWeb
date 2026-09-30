@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import AuthButton from "../components/AuthButton";
+import AdSenseUnit from "../components/AdSenseUnit";
+import PrivacySettingsButton from "../components/PrivacySettingsButton";
+import { adsenseConfig } from "../config/adsense";
 import { Card, CardBody } from "@heroui/react";
 import { useLanguage } from "../i18n";
 import previewImg from "../images/launcher-preview.png";
@@ -192,6 +195,54 @@ const modpacks = [
   },
 ];
 
+const faqContent = {
+  en: {
+    eyebrow: "Help Center",
+    title: "Questions before you play",
+    intro: "Straightforward answers about downloads, supported platforms, ads, accounts, and troubleshooting.",
+    guide: "Read the getting started guide",
+    support: "Troubleshooting & support",
+    items: [
+      ["Is Modstack free to download?", "Yes. Modstack can be downloaded from the official website without purchasing the launcher. Minecraft ownership and access remain subject to Mojang and Microsoft account requirements."],
+      ["Does the launcher contain advertising?", "No. Advertising may appear on this website to support the project, but ads are not integrated into the Modstack launcher."],
+      ["Which operating systems are supported?", "The website currently provides downloads for Windows, macOS, and Linux. Linux packages are available in AppImage, DEB, and RPM formats."],
+      ["Can I use Java and Bedrock Edition?", "Modstack is designed to provide access to both Java and Bedrock workflows from one launcher. Availability can still depend on your operating system, account, and game ownership."],
+      ["Where should I download Modstack?", "Use modstack.online or the official Modstack GitHub organization. Avoid installers re-uploaded by unrelated download sites."],
+      ["What should I do when a modded instance stops launching?", "Check that the Minecraft version, mod loader, and installed mods are compatible. Remove the latest change first, test a clean instance, and keep the crash log if you need support."],
+    ],
+  },
+  es: {
+    eyebrow: "Centro de ayuda",
+    title: "Preguntas antes de jugar",
+    intro: "Respuestas claras sobre descargas, plataformas compatibles, anuncios, cuentas y solución de problemas.",
+    guide: "Leer la guía de inicio",
+    support: "Solución de problemas y soporte",
+    items: [
+      ["¿Modstack se puede descargar gratis?", "Sí. Puedes descargar Modstack desde el sitio oficial sin comprar el launcher. La propiedad y el acceso a Minecraft siguen sujetos a los requisitos de Mojang y Microsoft."],
+      ["¿El launcher contiene publicidad?", "No. Este sitio web puede mostrar publicidad para apoyar el proyecto, pero los anuncios no están integrados en el launcher de Modstack."],
+      ["¿Qué sistemas operativos son compatibles?", "El sitio ofrece descargas para Windows, macOS y Linux. En Linux están disponibles los formatos AppImage, DEB y RPM."],
+      ["¿Puedo usar Java y Bedrock Edition?", "Modstack está diseñado para ofrecer flujos de Java y Bedrock desde un solo launcher. La disponibilidad puede depender de tu sistema operativo, cuenta y propiedad del juego."],
+      ["¿Dónde debo descargar Modstack?", "Usa modstack.online o la organización oficial de Modstack en GitHub. Evita instaladores republicados por sitios de descarga no relacionados."],
+      ["¿Qué hago si una instancia con mods deja de iniciar?", "Comprueba que la versión de Minecraft, el mod loader y los mods instalados sean compatibles. Revierte primero el último cambio, prueba una instancia limpia y conserva el registro del fallo si necesitas soporte."],
+    ],
+  },
+  pt: {
+    eyebrow: "Central de ajuda",
+    title: "Perguntas antes de jogar",
+    intro: "Respostas diretas sobre downloads, plataformas compatíveis, anúncios, contas e solução de problemas.",
+    guide: "Ler o guia de primeiros passos",
+    support: "Solução de problemas e suporte",
+    items: [
+      ["O download do Modstack é gratuito?", "Sim. O Modstack pode ser baixado pelo site oficial sem comprar o launcher. A propriedade e o acesso ao Minecraft continuam sujeitos aos requisitos da Mojang e da Microsoft."],
+      ["O launcher contém publicidade?", "Não. Este site pode exibir publicidade para apoiar o projeto, mas os anúncios não são integrados ao launcher do Modstack."],
+      ["Quais sistemas operacionais são compatíveis?", "O site oferece downloads para Windows, macOS e Linux. No Linux, estão disponíveis os formatos AppImage, DEB e RPM."],
+      ["Posso usar Java e Bedrock Edition?", "O Modstack foi projetado para oferecer fluxos de Java e Bedrock em um único launcher. A disponibilidade ainda pode depender do sistema operacional, da conta e da propriedade do jogo."],
+      ["Onde devo baixar o Modstack?", "Use modstack.online ou a organização oficial do Modstack no GitHub. Evite instaladores republicados por sites de download não relacionados."],
+      ["O que faço se uma instância com mods parar de iniciar?", "Verifique se a versão do Minecraft, o mod loader e os mods instalados são compatíveis. Reverta primeiro a alteração mais recente, teste uma instância limpa e guarde o relatório de falha caso precise de suporte."],
+    ],
+  },
+} as const;
+
 interface NewsItem {
   id?: string;
   title?: string;
@@ -204,6 +255,7 @@ interface NewsItem {
 
 function App() {
   const { language } = useLanguage();
+  const faq = faqContent[language];
   const [expanded, setExpanded] = useState(false);
   const [latestNews, setLatestNews] = useState<NewsItem | null>(null);
   const [detectedOS, setDetectedOS] = useState<"Windows" | "macOS" | "Linux" | "Mobile" | null>(null);
@@ -404,7 +456,7 @@ function App() {
         </svg>
 
         <div className="hero-content">
-          <div className="badge">v1.2.5 STABLE</div>
+          <div className="badge">v1.2.6 STABLE</div>
           <h1 className="font-minecraft !font-normal !tracking-normal">
             Download Modstack
             <br />
@@ -648,6 +700,11 @@ function App() {
             </div>
           )}
 
+          <AdSenseUnit
+            placement="home"
+            slotId={adsenseConfig.homeSlotId}
+          />
+
           {/* Features Section */}
           <div className="mt-24 md:mt-32 max-w-6xl w-full px-4 mb-16 text-center">
             <span className="text-[#2596be] font-bold tracking-wider uppercase text-xs sm:text-sm bg-[#103444] px-3.5 py-1.5 rounded-full border border-[#2596be]/25">
@@ -685,6 +742,11 @@ function App() {
               })}
             </div>
           </div>
+
+          <AdSenseUnit
+            placement="content"
+            slotId={adsenseConfig.contentSlotId}
+          />
 
           {/* Comparison Section */}
           <div className="mt-24 md:mt-32 max-w-5xl w-full px-4 mb-16 text-center mx-auto">
@@ -857,6 +919,53 @@ function App() {
               })}
             </div>
           </div>
+
+          {/* Help and FAQ Section */}
+          <section className="mt-24 md:mt-32 max-w-5xl w-full px-4 mb-16 text-center">
+            <span className="text-[#2596be] font-bold tracking-wider uppercase text-xs sm:text-sm bg-[#103444] px-3.5 py-1.5 rounded-full border border-[#2596be]/25">
+              {faq.eyebrow}
+            </span>
+            <h2 className="text-3xl md:text-5xl font-normal text-white mt-5 mb-3 tracking-normal font-minecraft">
+              {faq.title}
+            </h2>
+            <p className="text-slate-400 text-base md:text-lg max-w-2xl mx-auto mb-10">
+              {faq.intro}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+              {faq.items.map(([question, answer]) => (
+                <details
+                  key={question}
+                  className="group rounded-xl border border-zinc-800/80 bg-zinc-900/20 backdrop-blur-sm p-5 open:bg-zinc-900/40 open:border-[#2596be]/35 transition-colors"
+                >
+                  <summary className="cursor-pointer list-none flex items-center justify-between gap-4 text-sm md:text-base font-bold text-white">
+                    {question}
+                    <span className="text-[#2596be] text-xl font-normal group-open:rotate-45 transition-transform">
+                      +
+                    </span>
+                  </summary>
+                  <p className="mt-3 pr-6 text-sm leading-relaxed text-slate-400">
+                    {answer}
+                  </p>
+                </details>
+              ))}
+            </div>
+
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <a
+                href="/guides"
+                className="rounded-lg bg-[#2596be] px-5 py-2.5 text-sm font-bold text-white shadow-[0_4px_0_rgb(29,123,158)]"
+              >
+                {faq.guide}
+              </a>
+              <a
+                href="/support"
+                className="rounded-lg border border-zinc-700 bg-zinc-900/50 px-5 py-2.5 text-sm font-bold text-white hover:border-[#2596be]/50"
+              >
+                {faq.support}
+              </a>
+            </div>
+          </section>
         </div>
       </div>
 
@@ -1007,6 +1116,15 @@ function App() {
                 <a href="/studio" style={legalLinkStyle}>
                   Studio
                 </a>
+                <a href="/editor" style={legalLinkStyle}>
+                  Skin Editor
+                </a>
+                <a href="/guides" style={legalLinkStyle}>
+                  Getting Started
+                </a>
+                <a href="/support" style={legalLinkStyle}>
+                  Support
+                </a>
               </div>
             </div>
 
@@ -1033,6 +1151,10 @@ function App() {
                 <a href="/privacy" style={legalLinkStyle}>
                   Privacy Policy
                 </a>
+                <PrivacySettingsButton
+                  className="privacy-settings-button"
+                  style={legalLinkStyle}
+                />
                 <a href="/about" style={legalLinkStyle}>
                   About
                 </a>

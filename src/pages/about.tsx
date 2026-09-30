@@ -120,7 +120,7 @@ export default function AboutPage({ open = false, onClose }: AboutPageProps) {
           </h1>
         </div>
         <div className="mt-2 text-sm text-sky-400 font-extrabold mx-auto w-fit mb-8 tracking-wider uppercase">
-          The Absolute BEST Minecraft Launcher
+          A community-focused Minecraft launcher
         </div>
 
         <div className="space-y-10">
@@ -129,10 +129,10 @@ export default function AboutPage({ open = false, onClose }: AboutPageProps) {
               <Heart className="w-5 h-5" /> Our Mission
             </h2>
             <p className="text-sm md:text-base leading-relaxed text-white/70 font-semibold">
-              Modstack was built to be the best Minecraft launcher available. We
-              focused on providing a lightweight, high-performance launcher
-              without compromising on features and actually listening to our
-              users.
+              Modstack was created to make managing Minecraft editions, instances,
+              accounts, mods, and servers less fragmented. The project focuses on a
+              lightweight desktop experience, practical controls, and improvements
+              informed by feedback from its community.
             </p>
           </section>
 
@@ -144,7 +144,7 @@ export default function AboutPage({ open = false, onClose }: AboutPageProps) {
               <FeatureCard
                 icon={Cpu}
                 title="Ultra-Lightweight Performance"
-                description="Modstack has a footprint 20 times smaller than OTHER launchers, using barely any system resources so your PC's power goes entirely to the game."
+                description="The launcher is designed to keep its own interface and background work lightweight so more system resources remain available to Minecraft."
               />
               <FeatureCard
                 icon={Layers}
@@ -158,8 +158,8 @@ export default function AboutPage({ open = false, onClose }: AboutPageProps) {
               />
               <FeatureCard
                 icon={ShieldCheck}
-                title="No Ads or distractions"
-                description="Enjoy a clean, ad-free experience without any annoying pop-ups or intrusive marketing. That means no sidebar ads, no cosmetics shop, and nothing similar to adveritising in the launcher."
+                title="No launcher ads or distractions"
+                description="Advertising may support the Modstack website, but it is not built into the desktop launcher. The launcher remains focused on managing and playing Minecraft."
               />
             </div>
           </div>
@@ -180,9 +180,10 @@ export default function AboutPage({ open = false, onClose }: AboutPageProps) {
               >
                 GitHub Repository
               </a>
-              . You can inspect the implementation details, and see how Modstack
-              works. This does not mean that you can create a launcher based off
-              Modstack though
+              . You can inspect implementation details and see how Modstack works.
+              Source-available does not automatically grant permission to redistribute,
+              relicense, or create another launcher from the code; consult the repository
+              license for the applicable terms.
             </p>
           </section>
 
@@ -192,7 +193,7 @@ export default function AboutPage({ open = false, onClose }: AboutPageProps) {
             </h2>
             <p className="text-sm leading-relaxed text-white/70 mb-4">
               Modstack is crafted and maintained by passionate developers who
-              love the Minecraft community (Unlike the other launchers):
+              enjoy building tools for the Minecraft community:
             </p>
             <ul className="space-y-2.5 text-sm text-white/80">
               <li>

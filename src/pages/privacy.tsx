@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@heroui/react";
+import PrivacySettingsButton from "../components/PrivacySettingsButton";
 import titleImg from "../images/modstack-title.png";
 import iconImg from "../images/placeholder.png";
 
@@ -89,7 +90,7 @@ export default function PrivacyPage({ open = false, onClose }: PrivacyPageProps)
           </h1>
         </div>
         <div className="mt-1 text-sm text-white/80 font-extrabold mx-auto w-fit mb-6">
-          Last updated: June 2026
+          Last updated: September 30, 2026
         </div>
         <p className="text-sm leading-relaxed text-white/70 font-semibold">
           By using{" "}
@@ -121,14 +122,15 @@ export default function PrivacyPage({ open = false, onClose }: PrivacyPageProps)
             </li>
           </ul>
           <p className="mt-3 text-sm leading-relaxed text-white/70">
-            We do not collect passwords, payment information, or any data beyond
-            what is listed above. We do not use advertising or behavioral tracking.
+            We do not collect your authentication password or payment information.
+            The website may also process technical data as described below. Advertising
+            is limited to the website and is never integrated into the Modstack launcher.
           </p>
         </Section>
 
         <Section title="2. How We Use Your Information">
           <p className="text-sm leading-relaxed text-white/70">
-            The information collected is used solely to:
+            Account information is used to:
           </p>
           <ul className="mt-3 list-disc pl-5 text-sm text-white/70 space-y-1">
             <li>Identify and authenticate your account across sessions.</li>
@@ -136,12 +138,65 @@ export default function PrivacyPage({ open = false, onClose }: PrivacyPageProps)
             <li>Provide support if you contact us.</li>
           </ul>
           <p className="mt-3 text-sm leading-relaxed text-white/70">
-            We do not sell, share, or disclose your data to third parties for
-            marketing or any other commercial purpose.
+            We do not sell your account information. Advertising providers may process
+            website usage and device data independently as described in Section 3.
           </p>
         </Section>
 
-        <Section title="3. Third-Party Authentication">
+        <Section title="3. Advertising, Cookies, and Similar Technologies">
+          <p className="text-sm leading-relaxed text-white/70">
+            The Modstack website uses Google AdSense to display advertising. Google and
+            its advertising partners may use cookies, local storage, IP address, device
+            information, and activity on this website to deliver, limit, measure, and
+            personalize ads, depending on your location and consent choices. Ads are not
+            shown unless the website's AdSense configuration is enabled.
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-white/70">
+            Where required, a consent message provides choices before personalized
+            advertising cookies are used. Non-personalized ads can still use cookies or
+            similar technologies for frequency capping, aggregated reporting, security,
+            and fraud prevention. Learn more in{" "}
+            <a
+              href="https://policies.google.com/technologies/ads"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#2596be] hover:text-sky-400 transition-colors"
+            >
+              Google's advertising policies
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://policies.google.com/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#2596be] hover:text-sky-400 transition-colors"
+            >
+              Google's Privacy Policy
+            </a>.
+          </p>
+        </Section>
+
+        <Section title="4. Your Advertising Privacy Choices">
+          <p className="text-sm leading-relaxed text-white/70">
+            You may accept, reject, or manage advertising purposes in the privacy message
+            shown where applicable. You can revisit or withdraw those choices at any time:
+          </p>
+          <PrivacySettingsButton className="mt-3 text-sm font-extrabold text-[#2596be] hover:text-sky-400 transition-colors" />
+          <p className="mt-3 text-sm leading-relaxed text-white/70">
+            You can also manage ad personalization through{" "}
+            <a
+              href="https://myadcenter.google.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#2596be] hover:text-sky-400 transition-colors"
+            >
+              Google's My Ad Center
+            </a>. Blocking advertising scripts may prevent ads and the privacy settings
+            dialog from appearing, but it does not affect access to website content.
+          </p>
+        </Section>
+
+        <Section title="5. Third-Party Authentication">
           <p className="text-sm leading-relaxed text-white/70">
             Modstack supports sign-in via{" "}
             <span className="text-white/90 font-extrabold">Google</span> and{" "}
@@ -173,7 +228,7 @@ export default function PrivacyPage({ open = false, onClose }: PrivacyPageProps)
           </ul>
         </Section>
 
-        <Section title="4. Security">
+        <Section title="6. Security">
           <p className="text-sm leading-relaxed text-white/70">
             We take reasonable measures to protect the information stored on our
             servers. Your email and provider ID are stored securely and are never
@@ -182,7 +237,7 @@ export default function PrivacyPage({ open = false, onClose }: PrivacyPageProps)
           </p>
         </Section>
 
-        <Section title="5. Data Retention">
+        <Section title="7. Data Retention">
           <p className="text-sm leading-relaxed text-white/70">
             Your account data is retained as long as you have an active account
             with Modstack. If you wish to have your data deleted, contact us at
@@ -190,21 +245,21 @@ export default function PrivacyPage({ open = false, onClose }: PrivacyPageProps)
           </p>
         </Section>
 
-        <Section title="6. Minors">
+        <Section title="8. Minors">
           <p className="text-sm leading-relaxed text-white/70">
             Our services are not directed at children under the age of 13. We do
             not knowingly collect data from anyone under 13.
           </p>
         </Section>
 
-        <Section title="7. Changes to This Policy">
+        <Section title="9. Changes to This Policy">
           <p className="text-sm leading-relaxed text-white/70">
             We reserve the right to update this privacy policy at any time. We
             will notify you of significant changes through the platform.
           </p>
         </Section>
 
-        <Section title="8. Contact">
+        <Section title="10. Contact">
           <p className="text-sm leading-relaxed text-white/70">
             If you have any questions about this policy or want to request data
             deletion, feel free to reach out:

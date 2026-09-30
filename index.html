@@ -17,9 +17,18 @@
     <meta name="twitter:title" content="Home - Modstack" />
     <meta name="twitter:description" content="Install and use Modstack App easily. Fast download, built-in optimization and automatic updates." />
     <meta name="twitter:image" content="https://modstack.online/images/preview.png" />
+    <style>
+      #startup-progress { position: fixed; inset: 0; min-height: 100vh; background: #0f1923; z-index: 9999; }
+      #startup-progress::after { content: ""; position: absolute; inset: 0 auto auto 0; width: 0; height: 3px; border-radius: 0 999px 999px 0; background: linear-gradient(90deg, #1d7b9e, #38bdf8); box-shadow: 0 0 12px rgba(37,150,190,.8); animation: startup-progress 8s cubic-bezier(.15,.75,.25,1) forwards; }
+      @keyframes startup-progress { 0% { width: 4%; } 30% { width: 42%; } 60% { width: 68%; } 85% { width: 82%; } 100% { width: 92%; } }
+      @media (prefers-reduced-motion: reduce) { #startup-progress::after { width: 70%; animation: none; } }
+    </style>
   </head>
-  <body>
-    <div id="root"></div>
+  <body style="margin: 0; background: #0f1923">
+    <div id="root">
+      <div id="startup-progress" role="progressbar" aria-label="Loading Modstack"></div>
+    </div>
+    <noscript>This website requires JavaScript to run Modstack.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

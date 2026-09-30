@@ -1,1 +1,11 @@
 /// <reference types="vite/client" />
+
+interface ImportMetaEnv {
+  readonly VITE_ADSENSE_PUBLISHER_ID?: string;
+  readonly VITE_ADSENSE_HOME_SLOT_ID?: string;
+  readonly VITE_ADSENSE_CONTENT_SLOT_ID?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}

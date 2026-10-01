@@ -17,9 +17,11 @@ const SIZE = 64;
 const AUTOSAVE_KEY = "modstack.editor.skin.v2";
 const STUDIO_KEY = "modstack.studio.pendingSkin";
 const MAX_HISTORY = 40;
+const GRID_SURFACE_INSET = 0.045;
 const copyPixels = (data: ImageData) => new ImageData(new Uint8ClampedArray(data.data), data.width, data.height);
 
 type HsvColor = { h: number; s: number; v: number };
+type PixelBounds = { x: number; y: number; width: number; height: number };
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
 function hexToHsv(hex: string): HsvColor {
@@ -99,15 +101,48 @@ const pickerLabels = {
   pt: { hue: "Matiz", tone: "Saturação e brilho", hex: "Cor hexadecimal" },
 } as const;
 
+const importLabels = {
+  en: { title: "Choose the arm model", description: "Which model does this PNG use?", cancel: "Cancel" },
+  es: { title: "Elige el modelo de brazos", description: "¿Qué modelo usa este PNG?", cancel: "Cancelar" },
+  pt: { title: "Escolha o modelo de braços", description: "Qual modelo este PNG usa?", cancel: "Cancelar" },
+} as const;
+
 function createBlankSkin(context: CanvasRenderingContext2D) {
   context.clearRect(0, 0, SIZE, SIZE);
 }
 
-function createPixelGridFaces(width: number, height: number, depth: number, xCells: number, yCells: number, zCells: number, color: number, opacity: number, renderOrder: number) {
+function getPartBounds(part: BodyPart, layer: EditLayer, model: Model): PixelBounds {
+  const armWidth = model === "slim" ? 14 : 16;
+  const bounds: Record<EditLayer, Record<BodyPart, PixelBounds>> = {
+    base: {
+      head: { x: 0, y: 0, width: 32, height: 16 },
+      body: { x: 16, y: 16, width: 24, height: 16 },
+      rightArm: { x: 40, y: 16, width: armWidth, height: 16 },
+      leftArm: { x: 32, y: 48, width: armWidth, height: 16 },
+      rightLeg: { x: 0, y: 16, width: 16, height: 16 },
+      leftLeg: { x: 16, y: 48, width: 16, height: 16 },
+    },
+    outer: {
+      head: { x: 32, y: 0, width: 32, height: 16 },
+      body: { x: 16, y: 32, width: 24, height: 16 },
+      rightArm: { x: 40, y: 32, width: armWidth, height: 16 },
+      leftArm: { x: 48, y: 48, width: armWidth, height: 16 },
+      rightLeg: { x: 0, y: 32, width: 16, height: 16 },
+      leftLeg: { x: 0, y: 48, width: 16, height: 16 },
+    },
+  };
+  return bounds[layer][part];
+}
+
+function createPixelGridFaces(width: number, height: number, depth: number, xCells: number, yCells: number, zCells: number, scaleX: number, scaleY: number, scaleZ: number, color: number, opacity: number, renderOrder: number) {
   const result = new Group();
   result.name = "editor-pixel-grid";
   const halfWidth = width / 2, halfHeight = height / 2, halfDepth = depth / 2;
-  const offset = Math.max(width, height, depth) * 0.0015;
+  // Keep the grid just behind the textured surface. Opaque pixels then hide
+  // their lines while transparent pixels still reveal the editing grid.
+  const insetX = GRID_SURFACE_INSET / Math.max(Math.abs(scaleX), 1e-6);
+  const insetY = GRID_SURFACE_INSET / Math.max(Math.abs(scaleY), 1e-6);
+  const insetZ = GRID_SURFACE_INSET / Math.max(Math.abs(scaleZ), 1e-6);
   type Axis = [number, number, number];
   const addFace = (center: Axis, uAxis: Axis, vAxis: Axis, normal: Axis, uLength: number, vLength: number, uCells: number, vCells: number) => {
     const points: number[] = [];
@@ -116,7 +151,7 @@ function createPixelGridFaces(width: number, height: number, depth: number, xCel
     for (let cell = 0; cell <= vCells; cell++) { const v = -vLength / 2 + vLength * cell / vCells; points.push(...point(-uLength / 2, v), ...point(uLength / 2, v)); }
     const geometry = new BufferGeometry();
     geometry.setAttribute("position", new Float32BufferAttribute(points, 3));
-    const material = new LineBasicMaterial({ color, transparent: true, opacity, depthTest: true, depthWrite: false, toneMapped: false });
+    const material = new LineBasicMaterial({ color, transparent: true, opacity, depthTest: true, depthWrite: true, toneMapped: false });
     const lines = new LineSegments(geometry, material);
     const localNormal = new Vector3(...normal), worldNormal = new Vector3(), worldPosition = new Vector3(), cameraDirection = new Vector3();
     lines.userData.gridOpacity = opacity;
@@ -129,12 +164,12 @@ function createPixelGridFaces(width: number, height: number, depth: number, xCel
     };
     result.add(lines);
   };
-  addFace([0, 0, halfDepth + offset], [1, 0, 0], [0, 1, 0], [0, 0, 1], width, height, xCells, yCells);
-  addFace([0, 0, -halfDepth - offset], [-1, 0, 0], [0, 1, 0], [0, 0, -1], width, height, xCells, yCells);
-  addFace([halfWidth + offset, 0, 0], [0, 0, -1], [0, 1, 0], [1, 0, 0], depth, height, zCells, yCells);
-  addFace([-halfWidth - offset, 0, 0], [0, 0, 1], [0, 1, 0], [-1, 0, 0], depth, height, zCells, yCells);
-  addFace([0, halfHeight + offset, 0], [1, 0, 0], [0, 0, -1], [0, 1, 0], width, depth, xCells, zCells);
-  addFace([0, -halfHeight - offset, 0], [1, 0, 0], [0, 0, 1], [0, -1, 0], width, depth, xCells, zCells);
+  addFace([0, 0, halfDepth - insetZ], [1, 0, 0], [0, 1, 0], [0, 0, 1], width, height, xCells, yCells);
+  addFace([0, 0, -halfDepth + insetZ], [-1, 0, 0], [0, 1, 0], [0, 0, -1], width, height, xCells, yCells);
+  addFace([halfWidth - insetX, 0, 0], [0, 0, -1], [0, 1, 0], [1, 0, 0], depth, height, zCells, yCells);
+  addFace([-halfWidth + insetX, 0, 0], [0, 0, 1], [0, 1, 0], [-1, 0, 0], depth, height, zCells, yCells);
+  addFace([0, halfHeight - insetY, 0], [1, 0, 0], [0, 0, -1], [0, 1, 0], width, depth, xCells, zCells);
+  addFace([0, -halfHeight + insetY, 0], [1, 0, 0], [0, 0, 1], [0, -1, 0], width, depth, xCells, zCells);
   return result;
 }
 
@@ -160,11 +195,11 @@ function installPixelGrid(gridObject: SkinObject, model: Model) {
       if (!bounds) return;
       const width = bounds.max.x - bounds.min.x, height = bounds.max.y - bounds.min.y, depth = bounds.max.z - bounds.min.z;
       const isOuter = layerIndex === 1;
-      const lines = createPixelGridFaces(width, height, depth, ...cells[id], 0xaeb7c1, isOuter ? 0.72 : 0.86, isOuter ? 4 : 2);
+      const lines = createPixelGridFaces(width, height, depth, ...cells[id], layer.scale.x, layer.scale.y, layer.scale.z, 0x566575, isOuter ? 0.82 : 0.76, isOuter ? 4 : 2);
       layer.add(lines);
       const materials = Array.isArray(layer.material) ? layer.material : [layer.material];
       materials.forEach((material) => {
-        material.colorWrite = false; material.depthWrite = true; material.transparent = true; material.opacity = 0;
+        material.colorWrite = false; material.depthWrite = false; material.transparent = true; material.opacity = 0;
         material.alphaTest = 0; material.side = FrontSide; material.needsUpdate = true;
       });
       layer.renderOrder = isOuter ? 3 : 1;
@@ -172,19 +207,31 @@ function installPixelGrid(gridObject: SkinObject, model: Model) {
   });
 }
 
-function alignOuterLayerParts(skin: SkinObject) {
-  skin.head.outerLayer.position.y = 4.75;
-  skin.rightArm.outerLayer.position.x = -0.5;
-  skin.leftArm.outerLayer.position.x = 0.5;
-  skin.rightLeg.outerLayer.position.x = -0.5;
-  skin.leftLeg.outerLayer.position.x = 0.5;
-  skin.rightLeg.outerLayer.position.y = -0.5;
-  skin.leftLeg.outerLayer.position.y = -0.5;
+function alignSkinParts(skin: SkinObject, model: Model) {
+  skin.rightLeg.position.x = -2;
+  skin.leftLeg.position.x = 2;
+  skin.rightLeg.position.z = 0;
+  skin.leftLeg.position.z = 0;
+
+  skin.head.outerLayer.scale.setScalar(1);
+  skin.body.outerLayer.scale.setScalar(1);
+  [skin.rightArm.outerLayer, skin.leftArm.outerLayer].forEach((layer) => {
+    layer.scale.set(model === "slim" ? 3.5 : 4.5, 12.5, 4.5);
+  });
+  skin.rightLeg.outerLayer.scale.setScalar(1);
+  skin.leftLeg.outerLayer.scale.setScalar(1);
+
+  skin.head.outerLayer.position.set(0, 4, 0);
+  skin.body.outerLayer.position.set(0, 0, 0);
+  skin.rightArm.outerLayer.position.set(0, 0, 0);
+  skin.leftArm.outerLayer.position.set(0, 0, 0);
+  skin.rightLeg.outerLayer.position.set(0, 0, 0);
+  skin.leftLeg.outerLayer.position.set(0, 0, 0);
 }
 
 function DirectSkinViewer({ source, revision, model, layers, activeLayer, visibleParts, tool, zoom, grid, onPixel }: {
   source: HTMLCanvasElement | null; revision: number; model: Model; layers: VisibleLayers; activeLayer: EditLayer; visibleParts: Record<BodyPart, boolean>; tool: Tool; zoom: number; grid: boolean;
-  onPixel: (x: number, y: number, start: boolean) => void;
+  onPixel: (x: number, y: number, part: BodyPart, start: boolean) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const viewerRef = useRef<SkinViewer | null>(null);
@@ -221,11 +268,20 @@ function DirectSkinViewer({ source, revision, model, layers, activeLayer, visibl
     viewer.loadSkin(source, { model });
     const skin = viewer.playerObject.skin;
     [skin.head, skin.body, skin.rightArm, skin.leftArm, skin.rightLeg, skin.leftLeg].forEach((bodyPart) => {
-      bodyPart.innerLayer.traverse((object) => {
+      [bodyPart.innerLayer, bodyPart.outerLayer].forEach((layer) => layer.traverse((object) => {
         if (!(object instanceof Mesh)) return;
         const materials = Array.isArray(object.material) ? object.material : [object.material];
-        materials.forEach((material) => { material.transparent = true; material.alphaTest = 1e-5; material.needsUpdate = true; });
-      });
+        materials.forEach((material) => {
+          material.transparent = true;
+          material.alphaTest = 1e-5;
+          material.depthTest = true;
+          material.depthWrite = true;
+          material.polygonOffset = true;
+          material.polygonOffsetFactor = -2;
+          material.polygonOffsetUnits = -2;
+          material.needsUpdate = true;
+        });
+      }));
     });
   }, [model, revision, source]);
 
@@ -240,7 +296,7 @@ function DirectSkinViewer({ source, revision, model, layers, activeLayer, visibl
     const skin = viewer.playerObject.skin;
     skin.setInnerLayerVisible(layers.base);
     skin.setOuterLayerVisible(layers.outer);
-    alignOuterLayerParts(skin);
+    alignSkinParts(skin, model);
     const nodes = { head: skin.head, body: skin.body, rightArm: skin.rightArm, leftArm: skin.leftArm, rightLeg: skin.rightLeg, leftLeg: skin.leftLeg };
     (Object.entries(nodes) as Array<[BodyPart, (typeof nodes)[BodyPart]]>).forEach(([id, node]) => { node.visible = visibleParts[id]; });
     const gridObject = gridObjectRef.current;
@@ -253,12 +309,12 @@ function DirectSkinViewer({ source, revision, model, layers, activeLayer, visibl
       gridObject.visible = grid && (layers.base || layers.outer);
       gridObject.setInnerLayerVisible(layers.base);
       gridObject.setOuterLayerVisible(layers.outer);
-      alignOuterLayerParts(gridObject);
+      alignSkinParts(gridObject, model);
       const gridNodes = { head: gridObject.head, body: gridObject.body, rightArm: gridObject.rightArm, leftArm: gridObject.leftArm, rightLeg: gridObject.rightLeg, leftLeg: gridObject.leftLeg };
       (Object.entries(gridNodes) as Array<[BodyPart, (typeof gridNodes)[BodyPart]]>).forEach(([id, node]) => {
         node.visible = visibleParts[id];
-        node.innerLayer.traverse((object) => { if (object instanceof LineSegments) object.userData.gridOpacity = activeLayer === "outer" ? 0.42 : 0.94; });
-        node.outerLayer.traverse((object) => { if (object instanceof LineSegments) object.userData.gridOpacity = 0.94; });
+        node.innerLayer.traverse((object) => { if (object instanceof LineSegments) object.userData.gridOpacity = activeLayer === "outer" ? 0.32 : 0.82; });
+        node.outerLayer.traverse((object) => { if (object instanceof LineSegments) object.userData.gridOpacity = 0.82; });
       });
     }
   }, [activeLayer, grid, layers, model, tool, visibleParts, zoom]);
@@ -274,21 +330,27 @@ function DirectSkinViewer({ source, revision, model, layers, activeLayer, visibl
     const nodes = { head: skin.head, body: skin.body, rightArm: skin.rightArm, leftArm: skin.leftArm, rightLeg: skin.rightLeg, leftLeg: skin.leftLeg };
     const targets = (Object.entries(nodes) as Array<[BodyPart, (typeof nodes)[BodyPart]]>)
       .filter(([id]) => visibleParts[id])
-      .map(([, node]) => activeLayer === "base" ? node.innerLayer : node.outerLayer);
-    const hit = raycasterRef.current.intersectObjects(targets, true)[0];
+      .map(([id, node]) => ({ id, object: activeLayer === "base" ? node.innerLayer : node.outerLayer }));
+    const hit = raycasterRef.current.intersectObjects(targets.map(({ object }) => object), true)[0];
     if (!hit?.uv) return null;
-    return [Math.max(0, Math.min(63, Math.floor(hit.uv.x * 64))), Math.max(0, Math.min(63, Math.floor((1 - hit.uv.y) * 64)))] as [number, number];
+    const target = targets.find(({ object }) => {
+      let current: typeof hit.object | null = hit.object;
+      while (current) { if (current === object) return true; current = current.parent; }
+      return false;
+    });
+    if (!target) return null;
+    return [Math.max(0, Math.min(63, Math.floor(hit.uv.x * 64))), Math.max(0, Math.min(63, Math.floor((1 - hit.uv.y) * 64))), target.id] as [number, number, BodyPart];
   };
   const pointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (event.button === 2 || tool === "move") return;
     event.preventDefault();
     const pixel = locatePixel(event); if (!pixel) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    drawingRef.current = true; onPixel(pixel[0], pixel[1], true);
+    drawingRef.current = true; onPixel(pixel[0], pixel[1], pixel[2], true);
   };
   const pointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (!drawingRef.current || tool === "move") return;
-    const pixel = locatePixel(event); if (pixel) onPixel(pixel[0], pixel[1], false);
+    const pixel = locatePixel(event); if (pixel) onPixel(pixel[0], pixel[1], pixel[2], false);
   };
   const pointerUp = () => { drawingRef.current = false; };
 
@@ -299,6 +361,7 @@ export default function EditorPage() {
   const { language } = useLanguage();
   const text = labels[language];
   const pickerText = pickerLabels[language];
+  const importText = importLabels[language];
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const undoRef = useRef<ImageData[]>([]);
@@ -309,10 +372,13 @@ export default function EditorPage() {
   const [zoom, setZoom] = useState(0.9);
   const [grid, setGrid] = useState(true);
   const [layers, setLayers] = useState<VisibleLayers>({ base: true, outer: false });
+  const [activeLayer, setActiveLayer] = useState<EditLayer>("base");
   const [model, setModel] = useState<Model>("default");
   const [revision, setRevision] = useState(0);
   const [history, setHistory] = useState({ undo: 0, redo: 0 });
   const [error, setError] = useState("");
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  const [showImportModelPrompt, setShowImportModelPrompt] = useState(false);
   const [showStudioPrompt, setShowStudioPrompt] = useState(false);
   const context = () => canvasRef.current?.getContext("2d", { willReadFrequently: true }) ?? null;
   const syncHistory = () => setHistory({ undo: undoRef.current.length, redo: redoRef.current.length });
@@ -358,9 +424,11 @@ export default function EditorPage() {
     setColor("#" + [pixel[0], pixel[1], pixel[2]].map((value) => value.toString(16).padStart(2, "0")).join(""));
     setTool("pencil");
   };
-  const fillArea = (startX: number, startY: number) => {
+  const fillArea = (startX: number, startY: number, part: BodyPart) => {
     const ctx = context(); if (!ctx) return;
     const image = ctx.getImageData(0, 0, SIZE, SIZE), data = image.data, start = (startY * SIZE + startX) * 4;
+    const bounds = getPartBounds(part, activeLayer, model);
+    const insidePart = (x: number, y: number) => x >= bounds.x && y >= bounds.y && x < bounds.x + bounds.width && y < bounds.y + bounds.height;
     const target = Array.from(data.slice(start, start + 4));
     const replacement = tool === "eraser" ? [0, 0, 0, 0] : [...color.match(/\w\w/g)!.map((part) => parseInt(part, 16)), 255];
     if (target.every((value, index) => value === replacement[index])) return;
@@ -368,16 +436,16 @@ export default function EditorPage() {
     const stack: Array<[number, number]> = [[startX, startY]];
     while (stack.length) {
       const [x, y] = stack.pop()!;
-      if (x < 0 || y < 0 || x >= SIZE || y >= SIZE || !matches(x, y)) continue;
+      if (!insidePart(x, y) || !matches(x, y)) continue;
       const index = (y * SIZE + x) * 4; replacement.forEach((value, offset) => { data[index + offset] = value; });
       stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
     }
     ctx.putImageData(image, 0, 0);
   };
-  const handle3DPixel = (x: number, y: number, start: boolean) => {
+  const handle3DPixel = (x: number, y: number, part: BodyPart, start: boolean) => {
     if (tool === "picker") { if (start) pickColor(x, y); return; }
     if (start) saveSnapshot();
-    if (tool === "fill") { if (start) { fillArea(x, y); markChanged(); } return; }
+    if (tool === "fill") { if (start) { fillArea(x, y, part); markChanged(); } return; }
     if (tool === "pencil" || tool === "eraser") { paintPixel(x, y); markChanged(); }
   };
   const undo = () => {
@@ -404,15 +472,20 @@ export default function EditorPage() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   });
-  const importSkin = (file: File) => {
+  const importSkin = (file: File, importedModel: Model) => {
     setError(""); const image = new Image(), url = URL.createObjectURL(file);
     image.onload = () => {
       URL.revokeObjectURL(url);
       if (!((image.width === 64 && image.height === 64) || (image.width === 64 && image.height === 32))) { setError(text.invalid); return; }
       const ctx = context(); if (!ctx) return;
-      saveSnapshot(); ctx.clearRect(0, 0, SIZE, SIZE); ctx.drawImage(image, 0, 0); markChanged();
+      saveSnapshot(); setModel(importedModel); ctx.clearRect(0, 0, SIZE, SIZE); ctx.drawImage(image, 0, 0); markChanged();
     };
     image.onerror = () => { URL.revokeObjectURL(url); setError(text.invalid); }; image.src = url;
+  };
+  const chooseImportModel = (importedModel: Model) => {
+    if (pendingImportFile) importSkin(pendingImportFile, importedModel);
+    setPendingImportFile(null);
+    setShowImportModelPrompt(false);
   };
   const download = () => {
     if (!canvasRef.current) return;
@@ -448,8 +521,13 @@ export default function EditorPage() {
     setVisibleParts((current) => ({ ...current, [id]: !current[id] }));
   };
   const isPartVisible = (id: SkinPart) => id === "all" ? allPartsVisible : visibleParts[id];
-  const toggleLayer = (id: EditLayer) => setLayers((current) => ({ ...current, [id]: !current[id] }));
-  const editLayer: EditLayer = layers.outer ? "outer" : "base";
+  const toggleLayer = (id: EditLayer) => {
+    const nextVisible = !layers[id];
+    const otherLayer: EditLayer = id === "base" ? "outer" : "base";
+    setLayers((current) => ({ ...current, [id]: nextVisible }));
+    if (nextVisible && (id === "outer" || !layers.outer)) setActiveLayer(id);
+    else if (activeLayer === id && layers[otherLayer]) setActiveLayer(otherLayer);
+  };
   return (
     <div className="skin-editor-root">
       <header className="skin-editor-header">
@@ -473,27 +551,28 @@ export default function EditorPage() {
         <section className="skin-editor-canvas-area">
           <canvas ref={canvasRef} width={SIZE} height={SIZE} className="skin-editor-source-canvas" />
           <div className={`skin-editor-mannequin-wrap ${grid ? "with-grid" : ""}`}>
-            <DirectSkinViewer source={canvasRef.current} revision={revision} model={model} layers={layers} activeLayer={editLayer} visibleParts={visibleParts} tool={tool} zoom={zoom} grid={grid} onPixel={handle3DPixel} />
+            <DirectSkinViewer source={canvasRef.current} revision={revision} model={model} layers={layers} activeLayer={activeLayer} visibleParts={visibleParts} tool={tool} zoom={zoom} grid={grid} onPixel={handle3DPixel} />
           </div>
           <span className="skin-editor-autosave">{text.saved}</span><p>{text.tip}</p>
         </section>
         <aside className="skin-editor-preview">
           <h2>{text.color}</h2>
           <SkindexColorPicker value={color} hueLabel={pickerText.hue} toneLabel={pickerText.tone} hexLabel={pickerText.hex} onChange={(nextColor) => { setColor(nextColor); setTool("pencil"); }} />
-          <div className="skin-editor-layer-tabs"><button className={layers.base ? "active" : ""} aria-pressed={layers.base} onClick={() => toggleLayer("base")}>{text.bodyLayer}</button><button className={layers.outer ? "active" : ""} aria-pressed={layers.outer} onClick={() => toggleLayer("outer")}>{text.outerLayer}</button></div>
+          <div className="skin-editor-layer-tabs"><button className={`${layers.base ? "active" : ""} ${activeLayer === "base" ? "editing" : ""}`} aria-pressed={layers.base} onClick={() => toggleLayer("base")}>{text.bodyLayer}</button><button className={`${layers.outer ? "active" : ""} ${activeLayer === "outer" ? "editing" : ""}`} aria-pressed={layers.outer} onClick={() => toggleLayer("outer")}>{text.outerLayer}</button></div>
           <h2>{text.parts}</h2>
           <div className="skin-editor-part-grid">
             {parts.map(({ id, label, shape }) => <button key={id} className={isPartVisible(id) ? "active" : "hidden"} aria-pressed={isPartVisible(id)} onClick={() => togglePart(id)} title={label}><i className={`skin-part-icon ${shape}`} /><span>{label}</span></button>)}
           </div>
           <span>{text.model}</span>
           <div className="skin-editor-model"><button className={model === "default" ? "active" : ""} onClick={() => setModel("default")}>{text.classic}</button><button className={model === "slim" ? "active" : ""} onClick={() => setModel("slim")}>{text.slim}</button></div>
-          <input ref={fileRef} type="file" accept="image/png" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) importSkin(file); event.currentTarget.value = ""; }} />
+          <input ref={fileRef} type="file" accept="image/png" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) { setPendingImportFile(file); setShowImportModelPrompt(true); } event.currentTarget.value = ""; }} />
           <button className="skin-editor-action secondary" onClick={() => fileRef.current?.click()}><Upload size={17} />{text.import}</button>
           <button className="skin-editor-action primary" onClick={download}><Download size={17} />{text.download}</button>
           <button className="skin-editor-action ghost" onClick={reset}><RotateCcw size={16} />{text.reset}</button>
           {error && <p className="skin-editor-error">{error}</p>}
         </aside>
       </main>
+      {showImportModelPrompt && <div className="skin-editor-prompt" role="dialog" aria-modal="true" aria-labelledby="skin-import-model-title"><div><h2 id="skin-import-model-title">{importText.title}</h2><p>{importText.description}</p><div><button onClick={() => { setPendingImportFile(null); setShowImportModelPrompt(false); }}>{importText.cancel}</button><button onClick={() => chooseImportModel("default")}>{text.classic} (4px)</button><button className="primary" onClick={() => chooseImportModel("slim")}>{text.slim} (3px)</button></div></div></div>}
       {showStudioPrompt && <div className="skin-editor-prompt" role="dialog" aria-modal="true"><div><h2>{text.ready}</h2><p>{text.readyText}</p><div><button onClick={() => setShowStudioPrompt(false)}>{text.dismiss}</button><button className="primary" onClick={openStudio}>{text.studio}<ExternalLink size={16} /></button></div></div></div>}
     </div>
   );

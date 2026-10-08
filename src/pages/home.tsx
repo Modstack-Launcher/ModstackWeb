@@ -24,16 +24,15 @@ import {
   Wrench,
 } from "lucide-react";
 
-const windowsExeUrl =
-  "https://github.com/Modstack-Launcher/ModstackInstaller/releases/download/v1.0.0/modstack-setup.exe";
-const linuxAppImageUrl =
-  "https://cdn.stackedhost.crysistudio.xyz/modstack/release/latest/modstack.AppImage";
-const linuxDebUrl =
-  "https://cdn.stackedhost.crysistudio.xyz/modstack/release/latest/modstack.deb";
-const linuxRpmUrl =
-  "https://cdn.stackedhost.crysistudio.xyz/modstack/release/latest/modstack.rpm";
-const macDmgUrl =
-  "https://cdn.stackedhost.crysistudio.xyz/modstack/release/latest/modstack.dmg";
+const githubReleaseApiUrl =
+  "https://api.github.com/repos/Modstack-Launcher/ModstackApp/releases/latest";
+const githubLatestDownloadUrl =
+  "https://github.com/Modstack-Launcher/ModstackApp/releases/latest/download";
+const windowsExeUrl = `${githubLatestDownloadUrl}/modstack-setup.exe`;
+const linuxAppImageUrl = `${githubLatestDownloadUrl}/modstack.AppImage`;
+const linuxDebUrl = `${githubLatestDownloadUrl}/modstack.deb`;
+const linuxRpmUrl = `${githubLatestDownloadUrl}/modstack.rpm`;
+const macDmgUrl = `${githubLatestDownloadUrl}/modstack.dmg`;
 
 const AppleIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
@@ -258,6 +257,7 @@ function App() {
   const faq = faqContent[language];
   const [expanded, setExpanded] = useState(false);
   const [latestNews, setLatestNews] = useState<NewsItem | null>(null);
+  const [latestReleaseTag, setLatestReleaseTag] = useState<string | null>(null);
   const [detectedOS, setDetectedOS] = useState<"Windows" | "macOS" | "Linux" | "Mobile" | null>(null);
 
   useEffect(() => {
@@ -271,6 +271,27 @@ function App() {
     } else if (ua.includes("linux")) {
       setDetectedOS("Linux");
     }
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(githubReleaseApiUrl, {
+      headers: { Accept: "application/vnd.github+json" },
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(`GitHub release request failed: ${response.status}`);
+        return response.json();
+      })
+      .then((release: { tag_name?: unknown }) => {
+        if (typeof release.tag_name === "string" && release.tag_name.trim()) {
+          setLatestReleaseTag(release.tag_name.trim());
+        }
+      })
+      .catch(() => {
+        // Keep the generic fallback when GitHub is unavailable.
+      });
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
@@ -456,7 +477,7 @@ function App() {
         </svg>
 
         <div className="hero-content">
-          <div className="badge">v1.2.6 STABLE</div>
+          <div className="badge">{latestReleaseTag ?? "LATEST"} STABLE</div>
           <h1 className="font-minecraft !font-normal !tracking-normal">
             Download Modstack
             <br />

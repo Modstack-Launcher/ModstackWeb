@@ -17,6 +17,7 @@ const StudioPage = lazy(() => import('./pages/studio.tsx'));
 const GuidesPage = lazy(() => import('./pages/guides.tsx'));
 const SupportPage = lazy(() => import('./pages/support.tsx'));
 const EditorPage = lazy(() => import('./pages/editor.tsx'));
+const AdminPage = lazy(() => import('./pages/admin.tsx'));
 
 const loadingFallback = (
   <div className="route-loading" role="progressbar" aria-label="Loading Modstack">
@@ -45,6 +46,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/guides" element={<GuidesPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/editor" element={<EditorPage />} />
+            <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </Suspense>
       </BrowserRouter>

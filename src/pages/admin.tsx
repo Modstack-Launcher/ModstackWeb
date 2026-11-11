@@ -194,6 +194,7 @@ export default function AdminPage() {
     }
     setUserId(user.id);
     const token = getAccessToken();
+    void loadNews();
     try {
       const response = await fetch(`/api/admin-stats?days=${range}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -205,7 +206,6 @@ export default function AdminPage() {
       }
       if (!response.ok) throw new Error(data.error || "No se pudieron cargar las estadísticas.");
       setStats(data);
-      void loadNews();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "No se pudieron cargar las estadísticas.");
     } finally {

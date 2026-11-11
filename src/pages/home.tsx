@@ -488,7 +488,7 @@ function App() {
             and keep them up to date, all in one handy package.
           </p>
 
-          {/* ── Download buttons + expandable platform grid ── */}
+          {/* Download buttons + expandable platform grid */}
           <div
             style={{
               display: "flex",

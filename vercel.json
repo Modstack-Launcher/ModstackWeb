@@ -1,6 +1,9 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/api/news", "destination": "https://modstack-api.vercel.app/api/news" },
+    { "source": "/api/news-admin", "destination": "https://modstack-api.vercel.app/api/news-admin" },
+    { "source": "/api/admin-stats", "destination": "https://modstack-api.vercel.app/api/admin-stats" },
+    { "source": "/api/launcher-telemetry", "destination": "https://modstack-api.vercel.app/api/launcher-telemetry" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
